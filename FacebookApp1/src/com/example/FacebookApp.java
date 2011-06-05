@@ -67,11 +67,12 @@ public class FacebookApp extends Activity {
 	    	JSONArray json_data = json.getJSONArray("data");
 	    	int totlength = json_data.length();
 	    	listaids = new Long[totlength];
+	    	listanames = new ArrayList<String>();
 	    	for(int i=0;i<totlength;i++)
 	    	{
 	    		JSONObject ids = json_data.getJSONObject(i);
 	    		listaids[i] = ids.getLong("id");
-	    		//listanames.add(ids.getString("name"));
+	    		listanames.add(ids.getString("name"));
 	    	}	
 	    }catch(Exception e){}
 	}
@@ -88,7 +89,8 @@ public class FacebookApp extends Activity {
 		    	JSONObject json = new JSONObject(response2);
 		    	JSONObject jsonsub = (JSONObject) json.getJSONObject("location");
 		    	String location = (String) jsonsub.get("name");
-		    	tv.append(location+"\n");	 
+		    	String name = listanames.get(i);
+		    	tv.append(name+":   "+location+"\n");	 
 	    	}catch(Exception e){}
 		}
 	} 
@@ -107,6 +109,8 @@ public class FacebookApp extends Activity {
           }
         }
         tv = (TextView) findViewById(R.id.location);
+        tv.setHorizontalScrollBarEnabled(true);
+        tv.setVerticalScrollBarEnabled(true);
         tv.setTextColor(0xFF6D84B4);
 	}
     
