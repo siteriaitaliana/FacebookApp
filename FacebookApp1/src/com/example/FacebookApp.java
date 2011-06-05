@@ -1,8 +1,8 @@
 package com.example;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.util.ArrayList;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.Activity;
@@ -18,6 +18,8 @@ import com.facebook.android.FacebookError;
 public class FacebookApp extends Activity {
 	
 	protected TextView tv;
+	protected Long[] listaids;
+	protected ArrayList<String> listanames;
 	
 	Facebook facebook = new Facebook("218266308198647");
 	
@@ -25,52 +27,75 @@ public class FacebookApp extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        tv = new TextView(this);
-        setContentView(tv);
+        
+        //tv.isVerticalScrollBarEnabled();
+        
+        setContentView(R.layout.main);
+        tv = (TextView) findViewById(R.id.location);
+       
+        //tv = new TextView(this);
+        //tv.setVerticalScrollBarEnabled(true);
 
         facebook.authorize(this, new String[] { "user_location", "friends_location" }, new DialogListener() {
            
         	public void onComplete(Bundle values) {
-        		try {
-					retrieveInfo();
-				} catch (MalformedURLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+        		try 
+        		{
+					retrieveUsersIdAndName();
+					retrieveUsersLocations();
+					
+        		}catch(Exception e){e.printStackTrace();}
         	}
 
 			public void onCancel() {}
 
-			public void onFacebookError(FacebookError e) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void onFacebookError(FacebookError e) {}
 
-			public void onError(DialogError e) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void onError(DialogError e) {}
+			
         });
     }
 	
 
-    private void retrieveInfo() throws MalformedURLException, IOException {
-    	try{
-    	String response = facebook.request("500663236");
-    	
-    	JSONObject json = new JSONObject(response);
-    	JSONObject jsonsub = (JSONObject) json.getJSONObject("location");
-    	
-    	String name = (String) jsonsub.get("name");
-    	
-    	tv.setText(name);
-    	
-    	}catch(Exception e){}
-		
+
+	private void retrieveUsersIdAndName() throws Exception
+	{
+		try{
+	    	String response = facebook.request("me/friends");
+	    	JSONObject json = new JSONObject(response);
+	    	JSONArray json_data = json.getJSONArray("data");
+	    	int totlength = json_data.length();
+	    	listaids = new Long[totlength];
+	    	for(int i=0;i<totlength;i++)
+	    	{
+	    		JSONObject ids = json_data.getJSONObject(i);
+	    		listaids[i] = ids.getLong("id");
+	    		//listanames.add(ids.getString("name"));
+	    	}	
+	    }catch(Exception e){}
 	}
+	
+	
+    private void retrieveUsersLocations() throws Exception 
+    {
+    	
+		for(int i=0; i<listaids.length; i++)
+		{
+	    	try
+	    	{
+	    		String torequire = listaids[i].toString();
+		    	String response2 = facebook.request(torequire);
+		    	JSONObject json = new JSONObject(response2);
+		    	JSONObject jsonsub = (JSONObject) json.getJSONObject("location");
+		    	String location = (String) jsonsub.get("name");
+		    	
+		    	tv.append(location+"\n");	 
+		    
+	    	}catch(Exception e){}
+
+		}
+    	
+	} 
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
