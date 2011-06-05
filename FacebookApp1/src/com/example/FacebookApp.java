@@ -8,6 +8,8 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewParent;
 import android.widget.TextView;
 
 import com.facebook.android.DialogError;
@@ -17,25 +19,20 @@ import com.facebook.android.FacebookError;
 
 public class FacebookApp extends Activity {
 	
+	protected final String APP_ID = "218266308198647";
+	
 	protected TextView tv;
 	protected Long[] listaids;
 	protected ArrayList<String> listanames;
 	
-	Facebook facebook = new Facebook("218266308198647");
+	Facebook facebook = new Facebook(APP_ID);
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        
-        //tv.isVerticalScrollBarEnabled();
-        
         setContentView(R.layout.main);
-        tv = (TextView) findViewById(R.id.location);
-       
-        //tv = new TextView(this);
-        //tv.setVerticalScrollBarEnabled(true);
-
+        styleUI();
+        
         facebook.authorize(this, new String[] { "user_location", "friends_location" }, new DialogListener() {
            
         	public void onComplete(Bundle values) {
@@ -43,7 +40,6 @@ public class FacebookApp extends Activity {
         		{
 					retrieveUsersIdAndName();
 					retrieveUsersLocations();
-					
         		}catch(Exception e){e.printStackTrace();}
         	}
 
@@ -55,10 +51,15 @@ public class FacebookApp extends Activity {
 			
         });
     }
-	
 
+	@Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) 
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        facebook.authorizeCallback(requestCode, resultCode, data);
+    }
 
-	private void retrieveUsersIdAndName() throws Exception
+	protected void retrieveUsersIdAndName() throws Exception
 	{
 		try{
 	    	String response = facebook.request("me/friends");
@@ -76,9 +77,8 @@ public class FacebookApp extends Activity {
 	}
 	
 	
-    private void retrieveUsersLocations() throws Exception 
+    protected void retrieveUsersLocations() throws Exception 
     {
-    	
 		for(int i=0; i<listaids.length; i++)
 		{
 	    	try
@@ -88,19 +88,26 @@ public class FacebookApp extends Activity {
 		    	JSONObject json = new JSONObject(response2);
 		    	JSONObject jsonsub = (JSONObject) json.getJSONObject("location");
 		    	String location = (String) jsonsub.get("name");
-		    	
 		    	tv.append(location+"\n");	 
-		    
 	    	}catch(Exception e){}
-
 		}
-    	
 	} 
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
 
-        facebook.authorizeCallback(requestCode, resultCode, data);
-    }
+	
+	private void styleUI() {
+		View layout = findViewById(R.id.back);
+        layout.setBackgroundColor(0xFFFFFFFF);
+        View titleView = getWindow().findViewById(android.R.id.title);
+        if (titleView != null) {
+          ViewParent parent = titleView.getParent();
+          if (parent != null && (parent instanceof View)) {
+            View parentView = (View)parent;
+            parentView.setBackgroundColor(0xFF6D84B4);
+          }
+        }
+        tv = (TextView) findViewById(R.id.location);
+        tv.setTextColor(0xFF6D84B4);
+	}
+    
 }
